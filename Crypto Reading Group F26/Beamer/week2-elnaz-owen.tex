@@ -1,0 +1,277 @@
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usetheme{Madrid}
+\usepackage[T1]{fontenc}
+\usepackage{tikz}
+\usepackage{braket}
+\usepackage{amsmath}
+
+% Macros carried over from the notes so the shared content compiles verbatim
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\norm}[1]{\left\Vert #1 \right\Vert}
+\newcommand{\tr}{\operatorname{tr}}
+
+% Message arrows for two-party game diagrams (challenger / adversary).
+% The \makebox sets a minimum arrow length so short labels still look right.
+\newcommand{\msgto}[1]{\xrightarrow{\makebox[2.2cm]{$\scriptstyle #1$}}}
+\newcommand{\msgfrom}[1]{\xleftarrow{\makebox[2.2cm]{$\scriptstyle #1$}}}
+
+\usetikzlibrary{arrows.meta,positioning,overlay-beamer-styles}
+
+% Emphasis in the theme's blue instead of the default red
+\setbeamercolor{alerted text}{use=structure,fg=structure.fg}
+
+% Give each \section its own title slide (as metropolis did)
+\AtBeginSection[]{
+  \begin{frame}
+    \sectionpage
+  \end{frame}
+}
+
+% Numbered [1], [2], ... markers for \cite and the References list
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+\setbeameroption{hide notes}
+
+\title{Week 2: Quantum Information Theory}
+\subtitle{}
+\author{Elnaz Hessami Pilehroon \& Owen Waldron}
+\date{\today}
+
+\begin{document}
+
+% ===== TITLE =====
+{
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+}
+
+% ===== ROADMAP =====
+\begin{frame}{Outline and Goals}
+  \begin{enumerate}
+    \item Quantum states, density operators, and mixed states
+    \item Quantum channels and the effect of noise
+    \item Distinguishability
+    \item Entropy, information, and basic security intuition
+  \end{enumerate}
+  \vspace{1em}
+  \centering\small Goal: introduce the main ideas and build intuition through worked examples.
+\end{frame}
+
+% ===== PART 1 =====
+\section{Quantum states, density operators, and mixed states}
+
+\begin{frame}{Density Matrix}
+    If we have a probabilistic mixture of states, that is, a random process is used to prepare 
+    \[
+    \left\{
+    \begin{array}{lll}
+    \ket{\psi_1} & \text{with probability} & p_1 \\
+    \ket{\psi_2} & \text{with probability} & p_2 \\
+    \vdots       & \vdots                  & \vdots \\
+    \ket{\psi_m} & \text{with probability} & p_m
+    \end{array}
+    \right.
+    \]
+    the density matrix is 
+    \[\rho = p_1 \ket{\psi_1}\bra{\psi_1} + p_2 \ket{\psi_2}\bra{\psi_2} + ... + p_m\ket{\psi_m}\bra{\psi_m}. \]
+\end{frame}
+
+
+\begin{frame}{Density Matrix Properties}
+    A matrix $\rho$ is a density matrix if and only if 
+    \newline 
+    a) Tr$(\rho) = 1$
+    \newline 
+    b) $\rho$ is positive semidefinite:
+    \begin{itemize}
+        \item There exists a matrix $M$ such that $\rho = M^\dagger M$ or 
+        \item $\rho$ is Hermitian: $\rho = \rho^\dagger$ and all of its eigenvalues are nonnegative real numbers or
+        \item $\bra{\psi}\rho\ket{\psi} \geq 0$ for every complex vector $\ket{\psi}$ of the appropriate dimension
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Indistinguishability}
+  \begin{definition}[Indistinguishability]
+    Two quantum states are said to be \emph{indistinguishable} if, for any
+    measurement procedure, the probability distribution of outcomes is
+    identical between the two states.
+  \end{definition}
+\end{frame}
+
+\begin{frame}{The indistinguishability game}
+  \begin{center}
+    \begin{tabular}{@{} l c l @{}}
+      \multicolumn{1}{@{}c}{\textbf{Challenger}} & &
+      \multicolumn{1}{c@{}}{\textbf{Adversary}} \\[0.8em]
+      & $\msgto{\rho_0,\ \rho_1}$ & [knows both descriptions] \\[0.8em]
+      $b \overset{\$}{\leftarrow} \{0,1\}$ & & \\[0.4em]
+      $\tau \leftarrow \rho_b$
+      & $\msgto{\tau}$ & [any measurement $\mathcal{M}$] \\[0.8em]
+      & $\msgfrom{b'}$ & outputs $b' \leftarrow \mathcal{M}(\tau)$ \\
+    \end{tabular}
+  \end{center}
+  \vspace{1em}
+  The adversary wins if $b' = b$. The states $\rho_0$ and $\rho_1$ are
+  indistinguishable exactly when the best adversary can only win with
+  probability $1/2$.
+\end{frame}
+
+\begin{frame}{Exercise: Distinguishing states}
+  \begin{exampleblock}{Are these states distinguishable?}
+    \begin{enumerate}[<+->]
+      \item The states $\ket{0}$ and $\ket{1}$.
+      \item The states $\ket{+}$ and
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{1} & \text{with prob. }1/2\end{cases}$
+      \item The states
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{1} & \text{with prob. }1/2\end{cases}$
+        and
+        $\begin{cases}\ket{+} & \text{with prob. }1/2 \\ \ket{-} & \text{with prob. }1/2\end{cases}$
+    \end{enumerate}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Trace distance}
+  \begin{definition}[Trace norm]
+    For a normal matrix $M$, the trace norm of $M$ is defined as
+    \[\norm{M}_1 = \tr\left(\abs{M}\right) = \tr\left(\sqrt{M^*M}\right)\]
+  \end{definition}
+  {\small Here $\abs{\cdot}$ and $\sqrt{\cdot}$ are applied to the eigenvalues
+  of the spectral decomposition of $M$.\par}
+  \vspace{0.5em}
+  \pause
+  \begin{definition}[Trace distance]
+    Let $\rho,\sigma$ be the density operators for two quantum states. The
+    trace distance between these states is defined as
+    \[\norm{\rho-\sigma}_1\]
+  \end{definition}
+  {\small Some sources (e.g.\ Nielsen \& Chuang) add a factor of $1/2$ here; we
+  follow the QIC 710 course notes and omit it.\par}
+\end{frame}
+
+\begin{frame}{The Holevo--Helstrom Theorem}
+  \begin{theorem}[Holevo--Helstrom]
+    Let $\rho_0$ and $\rho_1$ be the density matrices of two $d$-dimensional
+    quantum states. If one of these two states is prepared by the flip of a
+    fair coin, then the best distinguishing procedure succeeds with probability
+    \[\frac{1}{2} + \frac{1}{4}\norm{\rho_0 - \rho_1}_1\]
+  \end{theorem}
+\end{frame}
+
+\begin{frame}{Exercise: Trace distance and distinguishability}
+  \begin{exampleblock}{Find the trace distance between:}
+    \begin{enumerate}[<+->]
+      \item The states $\ket{0}$ and $\ket{1}$.
+      \item The states $\ket{+}$ and
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{1} & \text{with prob. }1/2\end{cases}$
+      \item The states
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{1} & \text{with prob. }1/2\end{cases}$
+        and
+        $\begin{cases}\ket{+} & \text{with prob. }1/2 \\ \ket{-} & \text{with prob. }1/2\end{cases}$
+    \end{enumerate}
+  \end{exampleblock}
+\end{frame}
+
+
+\begin{frame}{Partial Trace}
+    If $(A, B)$ is any pair of systems with classical state sets $\Sigma$ and $\Gamma$,  and we have a density matrix $\rho$ describing a state of $(A, B)$, the reduced states of the systems $A$ and $B$ are: 
+    \[\rho_A = \text{Tr}_B(\rho) = \sum_{b \in \Gamma} \hspace{0.1cm}(\mathbb{I}_A \otimes \bra{b}) \hspace{0.1cm} \rho \hspace{0.1cm}(\mathbb{I}_A \otimes \ket{b})\]
+    \[\rho_B = \text{Tr}_A(\rho) = \sum_{a \in \Sigma} \hspace{0.1cm}(\bra{a} \otimes \mathbb{I}_B) \hspace{0.1cm} \rho \hspace{0.1cm}(\ket{a} \otimes \mathbb{I}_B )\]
+\end{frame}
+
+
+% ===== PART 2 =====
+\section{Quantum channels and the effect of noise}
+
+\begin{frame}{Quantum Channels}
+    A quantum channel is a map $\mathcal{E}$ on density matrices of the form
+    \[
+    \mathcal{E}(\rho)=\sum_i K_i\rho K_i^\dagger,
+    \qquad
+    \sum_i K_i^\dagger K_i=I,
+    \]
+    where the matrices $K_k$ are called Kraus operators.
+\end{frame}
+
+% ===== PART 4 =====
+\section{Entropy, information, and basic security intuition}
+
+\begin{frame}{Information gain implies disturbance}
+  \begin{theorem}[Information gain implies disturbance]
+    In any attempt to distinguish between two non-orthogonal quantum states,
+    information gain is only possible at the expense of introducing
+    disturbance to the signal.
+  \end{theorem}
+\end{frame}
+
+\begin{frame}{Shannon entropy}
+  \begin{definition}[Shannon entropy]
+    For a discrete random variable $X=1,\dots,n$ with probability distribution
+    $p_1,\dots,p_n$, the Shannon entropy is defined as
+    \[H(X) \equiv H(p_1, \dots, p_n) \equiv -\sum_x p_x \log p_x\]
+  \end{definition}
+\end{frame}
+
+\begin{frame}{Exercise: Playing with Shannon entropy}
+  \begin{exampleblock}{What is the entropy associated with\dots}
+    \begin{enumerate}[<+->]
+      \item the toss of a fair coin?
+      \item the roll of a fair die?
+      \item the roll of a \emph{Mario die} (with sides $1,3,3,3,5,6$)? What
+        about a \emph{Peach die} ($0,2,4,4,4,6$)?
+      \item How do the above compare to a fair 4-sided die?
+    \end{enumerate}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Conditional entropy \& mutual information}
+  \begin{definition}[Conditional entropy and mutual information]
+    Let $X,Y$ be two random variables. The joint entropy of $X$ and $Y$ is
+    \[H(X,Y) \equiv -\sum_{x,y}p(x,y)\log p(x,y)\]
+    \pause
+    the entropy of $X$ conditional on knowing $Y$ is
+    \[H(X|Y)\equiv H(X,Y) - H(Y)\]
+    \pause
+    and the mutual information of $X$ and $Y$ is
+    \[H(X:Y)\equiv H(X) + H(Y) - H(X,Y)\]
+  \end{definition}
+\end{frame}
+
+\begin{frame}{Von Neumann entropy}
+  \begin{definition}[Von Neumann entropy]
+    For a quantum state $\rho$, the von Neumann entropy is defined as
+    \[S(\rho) \equiv -\tr(\rho\log\rho)\]
+  \end{definition}
+  {\small Writing $\lambda_x$ for the eigenvalues of $\rho$, this is equivalent
+  to
+  \[S(\rho)=-\sum_x \lambda_x\log\lambda_x\]
+  again taking $0\log 0 \equiv 0$.\par}
+\end{frame}
+
+\begin{frame}{Exercise: Computing von Neumann entropy}
+  \begin{exampleblock}{What is the von Neumann entropy of\dots}
+    \begin{enumerate}[<+->]
+      \item \emph{any} pure state $\ket{\psi}$?
+      \item the state
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{1} & \text{with prob. }1/2\end{cases}$
+      \item the state
+        $\begin{cases}\ket{0} & \text{with prob. }1/2 \\ \ket{+} & \text{with prob. }1/2\end{cases}$
+        \\[0.4em]
+        How does it compare to the previous answer?
+    \end{enumerate}
+  \end{exampleblock}
+\end{frame}
+
+% ===== THANK YOU =====
+\begin{frame}[plain]
+  \centering
+  \vfill
+  {\Huge Thank you!}\\[0.6em]
+  \large Questions?
+  \vfill
+\end{frame}
+
+\end{document}
+x
